@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -12,6 +13,25 @@ func home(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
+	files := []string{
+		"./snippetbox/ui/html/partials/nav.html",
+		"./snippetbox/ui/html/base.html",
+		"./snippetbox/ui/html/pages/home.html",
+	}
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = ts.ExecuteTemplate(w, "base", nil)
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+	}
+
 	w.Write([]byte("Hello from Snippetbox"))
 
 }
@@ -22,7 +42,7 @@ func snippetView(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+	fmt.Fprintf(w, "Display a specific snippet with ID %d muehehehh", id)
 	// w.Write([]byte("Display a specific snippet..."))
 }
 
@@ -38,13 +58,6 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Create a new snippet..."))
 }
 
-func main() {
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippet/view", snippetView)
-	mux.HandleFunc("/snippet/create", snippetCreate)
-	log.Print("starting server on :4000")
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
+func downloadHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./snippetbox/ui/static/file.zip")
 }
